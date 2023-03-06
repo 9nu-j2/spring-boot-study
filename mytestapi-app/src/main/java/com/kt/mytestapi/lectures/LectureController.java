@@ -21,17 +21,34 @@ import java.net.URI;
 public class LectureController {
     private final LectureRepository lectureRepository;
     private final ModelMapper modelMapper;
+    private final LectureValidator lectureValidator;
 
     @PostMapping
     public ResponseEntity createLecture(@RequestBody @Valid LectureReqDto lectureReqDto, Errors errors) {
+
+        //입력항목 체크
         if(errors.hasErrors()){
-            return ResponseEntity.badRequest().body(errors);
+            return badRequest(errors);
         }
+        //입력항목의 biz logic 체크
+        lectureValidator.validate(lectureReqDto, errors);
+        if(errors.hasErrors()){
+            return badRequest(errors);
+        }
+
         Lecture lecture = modelMapper.map(lectureReqDto, Lecture.class);
+
+        //free, offline 값을 갱신
+        lecture.update();
+
         Lecture savedLecture = lectureRepository.save(lecture);
 
         WebMvcLinkBuilder selfLinkBuilder = WebMvcLinkBuilder.linkTo(LectureController.class).slash(lecture.getId());
         URI createUri = selfLinkBuilder.toUri();
         return ResponseEntity.created(createUri).body(savedLecture);
+    }
+
+    private static ResponseEntity<Errors> badRequest(Errors errors) {
+        return ResponseEntity.badRequest().body(errors);
     }
 }
