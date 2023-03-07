@@ -1,5 +1,6 @@
 package com.kt.mytestapi.lectures;
 
+import com.kt.mytestapi.common.ErrorsResource;
 import com.kt.mytestapi.lectures.dto.LectureReqDto;
 import com.kt.mytestapi.lectures.dto.LectureResDto;
 import lombok.RequiredArgsConstructor;
@@ -31,12 +32,12 @@ public class LectureController {
 
         //입력항목 체크
         if(errors.hasErrors()){
-            return badRequest(errors);
+            return ResponseEntity.badRequest().body(new ErrorsResource(errors));
         }
         //입력항목의 biz logic 체크
         lectureValidator.validate(lectureReqDto, errors);
         if(errors.hasErrors()){
-            return badRequest(errors);
+            return ResponseEntity.badRequest().body(new ErrorsResource(errors));
         }
 
         Lecture lecture = modelMapper.map(lectureReqDto, Lecture.class);
