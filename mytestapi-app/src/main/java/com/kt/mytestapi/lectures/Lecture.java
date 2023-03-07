@@ -1,6 +1,7 @@
 package com.kt.mytestapi.lectures;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.kt.mytestapi.accounts.Account;
 import lombok.*;
 
 import javax.persistence.*;
@@ -38,6 +39,9 @@ public class Lecture {
 
     @Enumerated(EnumType.STRING)
     private LectureStatus lectureStatus = LectureStatus.DRAFT;
+
+    @ManyToOne
+    private Account account;
 
     public void update() {
     // Update free
