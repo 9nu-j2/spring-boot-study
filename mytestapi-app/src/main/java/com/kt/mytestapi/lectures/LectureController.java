@@ -31,6 +31,36 @@ public class LectureController {
     private final ModelMapper modelMapper;
     private final LectureValidator lectureValidator;
 
+    @PutMapping("/{id}")
+    public ResponseEntity updateLecture(@PathVariable Integer id,
+                                        @RequestBody @Valid LectureReqDto lectureReqDto,
+                                        Errors errors){
+        Optional<Lecture> optionalLecture = this.lectureRepository.findById(id);
+        //id와 mapping되는 entitiy가 없으면 404에러
+        if(optionalLecture.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        //입력항목 체크해서 오류가 있다면 400 에러
+        if(errors.hasErrors()){
+            return badRequest(errors);
+        }
+        //입력항목 biz로직 체크해서 오류가 있다면 400 에러
+        this.lectureValidator.validate(lectureReqDto, errors);
+        if(errors.hasErrors()){
+            return badRequest(errors);
+        }
+        //id와 매핑되는 lecture entity가 있으면 Optional에서 추출
+        Lecture existingLecture = optionalLecture.get();
+        //LectureReqDto -> lecture 타입으로 매핑
+        this.modelMapper.map(lectureReqDto, existingLecture);
+        //lecture 엔티티를 db에 저장
+        Lecture savedLecture = this.lectureRepository.save(existingLecture);
+        //selflink오 ㅏ함께 전달하기 위해서 LectureResDto를 lectureResponse와 mapping
+        LectureResDto lectureResDto = modelMapper.map(savedLecture, LectureResDto.class);
+        LectureResource lectureResource = new LectureResource(lectureResDto);
+        return ResponseEntity.ok(lectureResource);
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity getLecture(@PathVariable Integer id) {
         Optional<Lecture> optionalLecture = this.lectureRepository.findById(id);
@@ -88,6 +118,7 @@ public class LectureController {
 
         return ResponseEntity.created(createUri).body(lectureResource);
     }
+
 
     private static ResponseEntity<Errors> badRequest(Errors errors) {
         return ResponseEntity.badRequest().body(errors);
