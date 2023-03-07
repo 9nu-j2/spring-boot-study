@@ -5,11 +5,14 @@ import com.kt.mytestapi.lectures.dto.LectureReqDto;
 import com.kt.mytestapi.lectures.dto.LectureResDto;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.hateoas.MediaTypes;
 import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.Errors;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -26,6 +29,13 @@ public class LectureController {
     private final LectureRepository lectureRepository;
     private final ModelMapper modelMapper;
     private final LectureValidator lectureValidator;
+
+    @GetMapping
+    public ResponseEntity queryLectures(Pageable pageable) {
+        Page<Lecture> lecturePage = this.lectureRepository.findAll(pageable);
+        //Page<Lecture> -> PagedModel<LectureResDto>역할을 해주는 PagedResourceAssembler 사용
+        return ResponseEntity.ok(lecturePage);
+    }
 
     @PostMapping
     public ResponseEntity createLecture(@RequestBody @Valid LectureReqDto lectureReqDto, Errors errors) {

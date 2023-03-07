@@ -3,12 +3,14 @@ package com.kt.mytestapi.runner;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
 
 @Component
+@Order(1)
 public class DatabaseRunner implements ApplicationRunner {
     @Autowired
     DataSource dataSource;
