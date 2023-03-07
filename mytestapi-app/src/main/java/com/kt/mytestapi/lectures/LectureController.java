@@ -1,6 +1,7 @@
 package com.kt.mytestapi.lectures;
 
 import com.kt.mytestapi.lectures.dto.LectureReqDto;
+import com.kt.mytestapi.lectures.dto.LectureResDto;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.hateoas.MediaTypes;
@@ -14,6 +15,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 import javax.validation.Valid;
 import java.net.URI;
+
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 
 @Controller
 @RequestMapping(value="api/lectures", produces = MediaTypes.HAL_JSON_VALUE)
@@ -42,10 +45,15 @@ public class LectureController {
         lecture.update();
 
         Lecture savedLecture = lectureRepository.save(lecture);
-
-        WebMvcLinkBuilder selfLinkBuilder = WebMvcLinkBuilder.linkTo(LectureController.class).slash(lecture.getId());
+        LectureResDto lectureResDto = modelMapper.map(savedLecture, LectureResDto.class);
+        WebMvcLinkBuilder selfLinkBuilder = linkTo(LectureController.class).slash(lecture.getId());
         URI createUri = selfLinkBuilder.toUri();
-        return ResponseEntity.created(createUri).body(savedLecture);
+
+        LectureResource lectureResource = new LectureResource(lectureResDto);
+        lectureResource.add(linkTo(LectureController.class).withRel("query-lectures"));
+        lectureResource.add(selfLinkBuilder.withRel("update-lecture"));
+
+        return ResponseEntity.created(createUri).body(lectureResource);
     }
 
     private static ResponseEntity<Errors> badRequest(Errors errors) {

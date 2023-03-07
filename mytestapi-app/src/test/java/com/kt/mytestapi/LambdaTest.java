@@ -19,7 +19,7 @@ public class LambdaTest {
             }
         });
 
-        //2. lambda
+        //2.lambda
         list.forEach(val -> System.out.println(val));
 
         //3.Method Reference
