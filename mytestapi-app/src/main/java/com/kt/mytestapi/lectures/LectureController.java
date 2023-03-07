@@ -7,7 +7,10 @@ import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PagedResourcesAssembler;
+import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.MediaTypes;
+import org.springframework.hateoas.PagedModel;
 import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -31,10 +34,19 @@ public class LectureController {
     private final LectureValidator lectureValidator;
 
     @GetMapping
-    public ResponseEntity queryLectures(Pageable pageable) {
-        Page<Lecture> lecturePage = this.lectureRepository.findAll(pageable);
-        //Page<Lecture> -> PagedModel<LectureResDto>역할을 해주는 PagedResourceAssembler 사용
-        return ResponseEntity.ok(lecturePage);
+    public ResponseEntity queryLectures(Pageable pageable, PagedResourcesAssembler<LectureResDto> assembler) {
+        Page<Lecture> page = this.lectureRepository.findAll(pageable);
+        Page<LectureResDto> lectureResDtoPage = page.map(lecture -> modelMapper.map(lecture, LectureResDto.class));
+        //1단계 - first, prev, next, last 링크
+        //PagedModel<EntityModel<LectureResDto>> pagedResources = assembler.toModel(lectureResDtoPage);
+        //2단계 - first, prev, next, last 링크 + self 링크
+        //public <R extends RepresentationaModel<?>>
+        //RepresentationModelAssembler의 추상메서드 R toModel(T entity)
+        PagedModel<LectureResource> pagedResources =
+                assembler.toModel(lectureResDtoPage, lectureResDto -> {
+                    return new LectureResource(lectureResDto);
+                });
+        return ResponseEntity.ok(pagedResources);
     }
 
     @PostMapping
